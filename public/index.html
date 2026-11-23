@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Drop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #050608;
+      --ink: #f4f6fa;
+      --muted: rgba(244, 246, 250, 0.56);
+      --radius-lg: 28px;
+      --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--ink);
+      background-color: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Seamless, organic darkroom moths (no polygon seam, entropic wing ripple) */
+    .bg-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background: #030406;
+    }
+
+    .bg-moth {
+      position: absolute;
+      inset: -6%;
+      background: url('assets/bg-aesthetic.jpg') center center / cover no-repeat;
+      mix-blend-mode: lighten;
+      will-change: transform;
+    }
+
+    .bg-moth.moth-a {
+      -webkit-mask-image: radial-gradient(ellipse 46% 52% at 22% 28%, #000 32%, transparent 74%);
+      mask-image: radial-gradient(ellipse 46% 52% at 22% 28%, #000 32%, transparent 74%);
+      transform-origin: 22% 28%;
+      filter: url(#mothRippleA);
+    }
+
+    .bg-moth.moth-b {
+      -webkit-mask-image: radial-gradient(ellipse 46% 52% at 78% 70%, #000 32%, transparent 74%);
+      mask-image: radial-gradient(ellipse 46% 52% at 78% 70%, #000 32%, transparent 74%);
+      transform-origin: 78% 70%;
+      filter: url(#mothRippleB);
+    }
+
+    .bg-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(4, 5, 7, 0.08) 0%, rgba(3, 4, 6, 0.58) 100%);
+    }
+
+    /* Minimal floating back button */
+    .back-btn {
+      position: fixed;
+      top: 22px;
+      left: 22px;
+      z-index: 35;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(16, 18, 24, 0.56);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      color: rgba(244, 246, 250, 0.88);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.65);
+      transition: transform 0.28s var(--ease-spring), background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .back-btn:hover {
+      transform: translateX(-2px);
+      background: rgba(244, 246, 250, 0.16);
+      border-color: rgba(255, 255, 255, 0.34);
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      width: 140%;
+      height: 140%;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.12;
+      mix-blend-mode: screen;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.5'/%3E%3C/svg%3E");
+      background-size: 220px 220px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* ================= 1.75s PURE-BLACK BLUR INTRO ================= */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000000;
+      overflow: hidden;
+      transition: opacity 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .intro-overlay.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .intro-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: clamp(16px, 3vw, 34px);
+      user-select: none;
+      animation: introBlurFlow 1.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    .intro-word {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: clamp(26px, 5.6vw, 68px);
+      letter-spacing: 0.14em;
+      color: #ffffff;
+      text-shadow:
+        -1.5px 0 0 rgba(110, 215, 255, 0.55),
+        1.5px 0 0 rgba(255, 125, 105, 0.42),
+        0 0 28px rgba(255, 255, 255, 0.22);
+      line-height: 1;
+    }
+
+    .intro-cross {
+      width: clamp(18px, 2.8vw, 34px);
+      height: clamp(18px, 2.8vw, 34px);
+      color: rgba(255, 255, 255, 0.92);
+      flex-shrink: 0;
+      animation: crossLock 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes introBlurFlow {
+      0% {
+        opacity: 0;
+        filter: blur(18px);
+        transform: scale(0.94);
+      }
+      30% {
+        opacity: 1;
+        filter: blur(0px);
+        transform: scale(1);
+      }
+      62% {
+        opacity: 1;
+        filter: blur(0px);
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        filter: blur(26px);
+        transform: scale(1.07);
+      }
+    }
+
+    @keyframes crossLock {
+      from { transform: rotate(-45deg) scale(0.8); }
+      to   { transform: rotate(0deg) scale(1); }
+    }
+
+    /* ================= VISUAL-ONLY ENTRY ================= */
+    .login-screen {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+    }
+
+    .portrait-picker {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 36px;
+      flex-wrap: wrap;
+    }
+
+    .portrait-gate {
+      position: relative;
+      width: 248px;
+      height: 332px;
+      padding: 10px;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(18, 20, 26, 0.42);
+      backdrop-filter: blur(22px) saturate(150%);
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
+      box-shadow: 0 32px 72px -22px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      cursor: pointer;
+      transition: transform 0.5s var(--ease-spring), border-color 0.35s ease, box-shadow 0.5s var(--ease-spring);
+      overflow: hidden;
+    }
+
+    .portrait-gate:hover {
+      transform: translateY(-10px) scale(1.025);
+      border-color: rgba(255, 255, 255, 0.48);
+      box-shadow: 0 42px 90px -20px rgba(0, 0, 0, 0.92), 0 0 42px -12px rgba(210, 224, 255, 0.22);
+    }
+
+    .portrait-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 21px;
+      overflow: hidden;
+      background: #0b0c0f;
+    }
+
+    .portrait-inner img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: contrast(1.04) saturate(0.94);
+      transition: transform 0.65s var(--ease-spring), filter 0.45s ease;
+    }
+
+    .portrait-gate[data-user="onur"] .portrait-inner { background: #0a0f1c; }
+    .portrait-gate[data-user="onur"] .portrait-inner img { object-position: center 18%; }
+    .portrait-gate[data-user="cenker"] .portrait-inner { background: #1c0c08; }
+    .portrait-gate[data-user="cenker"] .portrait-inner img { object-position: center 18%; }
+    .portrait-gate:hover .portrait-inner img { transform: scale(1.06); filter: contrast(1.08) saturate(1.06); }
+
+    /* ================= MAIN APP ================= */
+    .app {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 28px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ephemeral-week-trigger {
+      position: fixed;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(20, 22, 28, 0.62);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: rgba(244, 246, 250, 0.92);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+      transition: all 0.25s var(--ease-spring);
+    }
+
+    .ephemeral-week-trigger:hover { background: rgba(244, 246, 250, 0.92); color: #0a0b0e; }
+
+    /* ================= DAILY STAGE ================= */
+    .stage {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 44px;
+      padding: 20px 0;
+      transition: gap 0.5s var(--ease-spring);
+    }
+
+    /* Hide own folder smoothly when partner folder is open */
+    .stage.partner-focused {
+      gap: 0;
+    }
+
+    .stage.partner-focused .own-folio {
+      width: 0;
+      min-height: 0;
+      opacity: 0;
+      transform: scale(0.86);
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    /* PARTNER FOLIO — Hero centerpiece (big, focal point) */
+    .partner-folio {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 430px;
+      border-radius: 32px;
+      transition: width 0.65s var(--ease-spring), transform 0.5s var(--ease-spring);
+    }
+
+    .partner-folio.is-open { width: min(92vw, 900px); }
+
+    .folder-box {
+      position: relative;
+      width: 430px;
+      height: 365px;
+      flex-shrink: 0;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.55s var(--ease-spring);
+      z-index: 3;
+    }
+
+    .partner-folio:not(.is-open) .folder-box:hover { transform: translateY(-6px); }
+
+    .folder-box::after {
+      content: "";
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      bottom: -16px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.72);
+      filter: blur(24px);
+      z-index: 0;
+    }
+
+    .folder-back {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      z-index: 1;
+      background: #101216;
+      box-shadow: 0 26px 60px -18px rgba(0, 0, 0, 0.8);
+    }
+
+    .folder-light .folder-back { clip-path: url(#folder-back-clip); }
+    .folder-dark .folder-back { top: 12px; border-radius: 26px; }
+
+    .folder-peek-img {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .folder-light .folder-peek-img { clip-path: url(#folder-back-clip); }
+    .folder-dark .folder-peek-img { top: 12px; border-radius: 26px; }
+
+    .folder-peek-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.65s var(--ease-spring), filter 0.45s ease;
+    }
+
+    .partner-folio:not(.is-open) .folder-box:hover .folder-peek-img img {
+      transform: scale(1.06) translateY(-4px);
+    }
+
+    .folder-flap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 76%;
+      z-index: 4;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 20px 22px;
+    }
+
+    .folder-light .folder-flap {
+      clip-path: url(#flap-left-clip);
+      background: linear-gradient(160deg, rgba(225, 232, 245, 0.24) 0%, rgba(190, 200, 218, 0.16) 52%, rgba(24, 27, 34, 0.62) 100%);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+    }
+
+    .folder-dark .folder-flap {
+      height: 72%;
+      clip-path: url(#flap-right-clip);
+      background: linear-gradient(165deg, rgba(18, 20, 26, 0.62) 0%, rgba(10, 11, 15, 0.82) 55%, rgba(6, 7, 10, 0.94) 100%);
+      backdrop-filter: blur(22px) saturate(150%);
+      -webkit-backdrop-filter: blur(22px) saturate(150%);
+    }
+
+    .flap-border { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+
+    .flap-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .flap-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: #14151a;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+      flex-shrink: 0;
+    }
+
+    .flap-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 15%;
+      display: block;
+    }
+
+    .flap-actions { display: flex; align-items: center; gap: 8px; }
+
+    .squircle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(12, 14, 18, 0.72);
+      backdrop-filter: blur(12px);
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: transform 0.35s var(--ease-spring), background 0.25s ease;
+    }
+
+    .squircle-btn:hover { transform: scale(1.06); background: rgba(255, 255, 255, 0.18); }
+    .partner-folio.is-open .partner-arrow { transform: rotate(180deg); }
+    .squircle-btn.glass-dark { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.18); box-shadow: none; }
+    .squircle-btn.glass-dark:hover { background: rgba(255, 255, 255, 0.18); }
+    .squircle-btn.eye-active { background: rgba(244, 246, 250, 0.92); color: #0a0b0e; border-color: #ffffff; }
+
+    .reveal-drawer {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      min-width: 0;
+      margin-left: -24px;
+      padding: 18px 18px 18px 40px;
+      border-top-right-radius: 28px;
+      border-bottom-right-radius: 28px;
+      background: rgba(16, 18, 24, 0.68);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-left: none;
+      box-shadow: 0 30px 68px -20px rgba(0, 0, 0, 0.78);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+      opacity: 0;
+      transform: translateX(-36px) scaleX(0.92);
+      transform-origin: left center;
+      pointer-events: none;
+      overflow: hidden;
+      transition: opacity 0.45s var(--ease-spring), transform 0.6s var(--ease-spring);
+    }
+
+    .partner-folio.is-open .reveal-drawer,
+    .own-folio.is-revealed .reveal-drawer {
+      opacity: 1;
+      transform: translateX(0) scaleX(1);
+      pointer-events: auto;
+    }
+
+    .drawer-image-wrap {
+      width: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      background: transparent;
+      cursor: zoom-in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateX(-16px);
+      transition: opacity 0.5s 0.14s var(--ease-spring), transform 0.6s 0.14s var(--ease-spring);
+    }
+
+    .partner-folio.is-open .drawer-image-wrap,
+    .own-folio.is-revealed .drawer-image-wrap { opacity: 1; transform: translateX(0); }
+
+    .drawer-image-wrap img {
+      width: 100%;
+      height: auto;
+      max-height: 62vh;
+      object-fit: contain;
+      border-radius: 18px;
+      display: block;
+      transition: transform 0.5s var(--ease-spring);
+    }
+
+    .drawer-image-wrap:hover img { transform: scale(1.03); }
+
+    .drawer-note {
+      font-size: 14.5px;
+      line-height: 1.48;
+      color: rgba(244, 246, 250, 0.92);
+      padding: 2px 4px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.45s 0.22s var(--ease-spring), transform 0.55s 0.22s var(--ease-spring);
+    }
+
+    .partner-folio.is-open .drawer-note,
+    .own-folio.is-revealed .drawer-note { opacity: 1; transform: translateY(0); }
+
+    /* Own folder — compact secondary companion */
+    .own-folio {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 245px;
+      border-radius: 26px;
+      align-self: flex-end;
+      opacity: 1;
+      transition: width 0.55s var(--ease-spring), opacity 0.35s ease, transform 0.5s var(--ease-spring);
+    }
+
+    .own-folio.is-revealed { width: min(90vw, 660px); }
+    .own-folio .folder-box { width: 245px; height: 208px; }
+    .own-folio .folder-flap { padding: 14px 16px; }
+    .own-folio .flap-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      border: 1.5px solid rgba(255, 255, 255, 0.72);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14), 0 6px 16px rgba(0, 0, 0, 0.55);
+    }
+    .own-folio .squircle-btn { width: 34px; height: 34px; border-radius: 11px; }
+    .own-folio .drawer-image-wrap img { max-height: 48vh; }
+    .own-folio .drawer-note { font-size: 13.5px; }
+
+    .own-folio.is-empty .folder-box {
+      cursor: pointer;
+    }
+
+    .own-folio.is-empty .empty-surface {
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 28px;
+      gap: 6px;
+    }
+
+    .tap-upload-hint {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px dashed rgba(244, 246, 250, 0.34);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(244, 246, 250, 0.55);
+      transition: transform 0.35s var(--ease-spring), border-color 0.3s ease, color 0.3s ease;
+    }
+
+    .own-folio.is-empty .folder-box:hover .tap-upload-hint {
+      transform: scale(1.12);
+      border-color: rgba(255, 255, 255, 0.85);
+      color: #ffffff;
+    }
+
+    .own-folio .folder-peek-img.is-hidden img {
+      filter: blur(28px) brightness(0.42) saturate(0.7);
+      transform: scale(1.16);
+    }
+
+    .empty-surface {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 34px;
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.06), rgba(8, 9, 12, 0.96));
+    }
+
+    .null-glyph {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      color: rgba(244, 246, 250, 0.36);
+      user-select: none;
+    }
+
+    /* ================= MODALS ================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(5, 6, 8, 0.72);
+      backdrop-filter: blur(26px) saturate(140%);
+      -webkit-backdrop-filter: blur(26px) saturate(140%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+
+    .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+
+    .modal-card {
+      width: 100%;
+      max-width: 480px;
+      border-radius: 28px;
+      padding: 22px;
+      background: rgba(16, 18, 24, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 36px 80px -20px rgba(0, 0, 0, 0.85);
+      transform: scale(0.95) translateY(12px);
+      transition: transform 0.35s var(--ease-spring);
+    }
+
+    .modal-backdrop.open .modal-card { transform: scale(1) translateY(0); }
+
+    .modal-head { display: flex; align-items: center; justify-content: flex-end; margin-bottom: 12px; }
+
+    .icon-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .dropzone {
+      position: relative;
+      border-radius: 20px;
+      border: 1.5px dashed rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.04);
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      overflow: hidden;
+      margin-bottom: 14px;
+      padding: 18px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dropzone.has-preview {
+      min-height: 0;
+      padding: 10px;
+      border-style: solid;
+      border-color: rgba(255, 255, 255, 0.14);
+      background: rgba(8, 9, 12, 0.85);
+    }
+
+    .dropzone img {
+      position: relative;
+      max-width: 100%;
+      max-height: 56vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 14px;
+      display: block;
+    }
+
+    .webp-badge {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      z-index: 2;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: rgba(10, 11, 14, 0.82);
+      color: #4ade80;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10.5px;
+    }
+
+    .note-input {
+      width: 100%;
+      height: 44px;
+      padding: 0 14px;
+      border-radius: 13px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      margin-bottom: 14px;
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+    }
+
+    .note-input::placeholder { color: rgba(244, 246, 250, 0.38); }
+    .note-input:focus { border-color: rgba(255, 255, 255, 0.42); }
+
+    .primary-btn {
+      width: 100%;
+      height: 45px;
+      border: none;
+      border-radius: 13px;
+      background: rgba(244, 246, 250, 0.94);
+      color: #0a0b0e;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .primary-btn:disabled { opacity: 0.5; cursor: wait; }
+
+    .week-modal-card {
+      width: 100%;
+      max-width: 960px;
+      border-radius: 28px;
+      padding: 20px;
+      background: rgba(14, 16, 21, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 38px 86px rgba(0, 0, 0, 0.86);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .week-modal-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+
+    .download-btn {
+      height: 38px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 11px;
+      background: rgba(244, 246, 250, 0.94);
+      color: #0a0b0e;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .seven-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .day-cell {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #0d0e12;
+      aspect-ratio: 4 / 5;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .day-cell.first-span { grid-column: span 2; aspect-ratio: auto; min-height: 220px; }
+    .day-cell img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .day-cell-overlay { position: relative; z-index: 2; padding: 10px 12px; background: linear-gradient(to top, rgba(6, 7, 10, 0.9), transparent); font-size: 12px; }
+    .day-cell.empty-slot { border: 1px dashed rgba(255, 255, 255, 0.14); align-items: center; justify-content: center; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+
+    /* Pure image-only lightbox over blurred background */
+    .lightbox-backdrop {
+      background: rgba(4, 5, 8, 0.56);
+      backdrop-filter: blur(36px) saturate(135%);
+      -webkit-backdrop-filter: blur(36px) saturate(135%);
+      cursor: zoom-out;
+    }
+
+    .lightbox-pure-img {
+      max-width: 92vw;
+      max-height: 90vh;
+      width: auto;
+      height: auto;
+      border-radius: 18px;
+      object-fit: contain;
+      box-shadow: 0 36px 96px rgba(0, 0, 0, 0.85);
+      transform: scale(0.94);
+      transition: transform 0.36s var(--ease-spring);
+      display: block;
+    }
+
+    .lightbox-backdrop.open .lightbox-pure-img {
+      transform: scale(1);
+    }
+
+    /* Floating chat bubble when partner's folder is empty */
+    .chat-bubble-float {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      z-index: 25;
+      padding: 10px 16px;
+      border-radius: 18px 18px 18px 4px;
+      background: rgba(244, 246, 250, 0.94);
+      color: #0b0c0f;
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      pointer-events: none;
+      box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.7);
+      transform: translate(-50%, 10px) scale(0.86);
+      opacity: 0;
+      animation: bubbleFly 1.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes bubbleFly {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, 14px) scale(0.82);
+      }
+      16% {
+        opacity: 1;
+        transform: translate(-50%, -18px) scale(1);
+      }
+      70% {
+        opacity: 1;
+        transform: translate(-50%, -44px) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -78px) scale(0.95);
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .stage { flex-direction: column; gap: 32px; padding: 12px 0; }
+    }
+
+    @media (max-width: 900px) {
+      .bg-moth.moth-a {
+        background-size: 215% auto;
+        background-position: 8% 12%;
+        -webkit-mask-image: radial-gradient(ellipse 68% 42% at 28% 16%, #000 35%, transparent 78%);
+        mask-image: radial-gradient(ellipse 68% 42% at 28% 16%, #000 35%, transparent 78%);
+        transform-origin: 28% 16%;
+      }
+      .bg-moth.moth-b {
+        background-size: 215% auto;
+        background-position: 92% 88%;
+        -webkit-mask-image: radial-gradient(ellipse 68% 42% at 72% 84%, #000 35%, transparent 78%);
+        mask-image: radial-gradient(ellipse 68% 42% at 72% 84%, #000 35%, transparent 78%);
+        transform-origin: 72% 84%;
+      }
+      .login-screen { min-height: 100dvh; padding: 20px; }
+      .portrait-picker { gap: 16px; flex-wrap: nowrap; }
+      .portrait-gate {
+        width: min(43vw, 210px);
+        height: auto;
+        aspect-ratio: 3 / 4;
+        padding: 7px;
+        border-radius: 22px;
+      }
+      .portrait-inner { border-radius: 16px; }
+      .app { min-height: 100dvh; padding: 20px 16px 32px; }
+      .partner-folio, .partner-folio.is-open {
+        width: 100%;
+        max-width: 400px;
+        min-height: 0;
+        flex-direction: column;
+      }
+      .own-folio, .own-folio.is-revealed {
+        width: 72%;
+        max-width: 265px;
+        min-height: 0;
+        align-self: center;
+        flex-direction: column;
+      }
+      .folder-box, .own-folio .folder-box {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1.18 / 1;
+      }
+      .reveal-drawer {
+        margin-left: 0;
+        margin-top: -22px;
+        padding: 0 14px;
+        border-radius: 0 0 26px 26px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-top: none;
+        transform: translateY(-18px) scaleY(0.92);
+        transform-origin: top center;
+        max-height: 0;
+        transition: max-height 0.55s var(--ease-spring), opacity 0.4s ease, transform 0.5s var(--ease-spring), padding 0.45s ease;
+      }
+      .stage.partner-focused .own-folio {
+        max-height: 0;
+        width: 0;
+        opacity: 0;
+        margin: 0;
+        padding: 0;
+      }
+      .partner-folio.is-open {
+        max-width: 100%;
+      }
+      .partner-folio.is-open .reveal-drawer,
+      .own-folio.is-revealed .reveal-drawer {
+        max-height: 100dvh;
+        padding: 32px 14px 18px;
+        transform: translateY(0) scaleY(1);
+      }
+      .drawer-image-wrap img {
+        width: 100%;
+        height: auto;
+        max-height: 68dvh;
+      }
+      .modal-backdrop { padding: 14px; }
+      .modal-card { padding: 18px; border-radius: 24px; }
+      .dropzone { min-height: 185px; }
+      .seven-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <!-- 1.75s Pure-Black Negative Blur Intro -->
+  <div class="intro-overlay" id="introOverlay" aria-hidden="true">
+    <div class="intro-lockup">
+      <span class="intro-word">KVASIR</span>
+      <svg class="intro-cross" viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square">
+        <line x1="6" y1="6" x2="30" y2="30" />
+        <line x1="30" y1="6" x2="6" y2="30" />
+      </svg>
+      <span class="intro-word">KYOKA</span>
+    </div>
+  </div>
+
+  <div class="bg-scene" aria-hidden="true">
+    <div class="bg-moth moth-a" id="mothA"></div>
+    <div class="bg-moth moth-b" id="mothB"></div>
+    <div class="bg-vignette"></div>
+  </div>
+
+  <svg width="0" height="0" style="position:absolute;pointer-events:none;" aria-hidden="true">
+    <defs>
+      <filter id="mothRippleA" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence id="turbA" type="fractalNoise" baseFrequency="0.007 0.011" numOctaves="2" seed="3" result="noise" />
+        <feDisplacementMap id="dispA" in="SourceGraphic" in2="noise" scale="11" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+      <filter id="mothRippleB" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence id="turbB" type="fractalNoise" baseFrequency="0.008 0.012" numOctaves="2" seed="11" result="noise" />
+        <feDisplacementMap id="dispB" in="SourceGraphic" in2="noise" scale="12" xChannelSelector="G" yChannelSelector="B" />
+      </filter>
+      <clipPath id="folder-back-clip" clipPathUnits="objectBoundingBox">
+        <path d="M 0.07,0.12 L 0.50,0.12 C 0.54,0.12 0.56,0.09 0.59,0.05 C 0.61,0.02 0.64,0.00 0.68,0.00 L 0.93,0.00 C 0.97,0.00 1.00,0.03 1.00,0.07 L 1.00,0.93 C 1.00,0.97 0.97,1.00 0.93,1.00 L 0.07,1.00 C 0.03,1.00 0.00,0.97 0.00,0.93 L 0.00,0.19 C 0.00,0.15 0.03,0.12 0.07,0.12 Z" />
+      </clipPath>
+      <clipPath id="flap-left-clip" clipPathUnits="objectBoundingBox">
+        <path d="M 0.07,0.00 L 0.34,0.00 C 0.39,0.00 0.42,0.04 0.45,0.10 C 0.48,0.16 0.51,0.20 0.56,0.20 L 0.93,0.20 C 0.97,0.20 1.00,0.24 1.00,0.30 L 1.00,0.90 C 1.00,0.96 0.97,1.00 0.93,1.00 L 0.07,1.00 C 0.03,1.00 0.00,0.96 0.00,0.90 L 0.00,0.10 C 0.00,0.04 0.03,0.00 0.07,0.00 Z" />
+      </clipPath>
+      <clipPath id="flap-right-clip" clipPathUnits="objectBoundingBox">
+        <path d="M 0.07,0.20 L 0.46,0.20 C 0.51,0.20 0.54,0.16 0.57,0.10 C 0.60,0.04 0.63,0.00 0.68,0.00 L 0.93,0.00 C 0.97,0.00 1.00,0.04 1.00,0.10 L 1.00,0.90 C 1.00,0.96 0.97,1.00 0.93,1.00 L 0.07,1.00 C 0.03,1.00 0.00,0.96 0.00,0.90 L 0.00,0.30 C 0.00,0.24 0.03,0.20 0.07,0.20 Z" />
+      </clipPath>
+    </defs>
+  </svg>
+
+  <section class="login-screen" id="loginScreen">
+    <div class="portrait-picker">
+      <button type="button" class="portrait-gate" data-user="onur" aria-label="Giriş">
+        <div class="portrait-inner"><img src="assets/kyoka-mirror.jpg" alt="" /></div>
+      </button>
+      <button type="button" class="portrait-gate" data-user="cenker" aria-label="Giriş">
+        <div class="portrait-inner"><img src="assets/kvasir-mirror.jpg" alt="" /></div>
+      </button>
+    </div>
+  </section>
+
+  <main class="app hidden" id="appShell">
+    <button class="back-btn" id="backToLoginBtn" type="button" aria-label="Geri">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="ephemeral-week-trigger hidden" id="seventhDayBtn" type="button">7. Gün · Grid</button>
+
+    <section class="stage" id="dailyView">
+      <!-- OWN FOLIO (Compact — left/bottom companion) -->
+      <div class="own-folio" id="ownFolio">
+        <article class="folder-box folder-dark" id="ownFolderBtn">
+          <div class="folder-back"></div>
+          <div class="folder-peek-img is-hidden" id="ownPeek"></div>
+          <div class="folder-flap">
+            <div class="flap-row">
+              <div class="flap-avatar"><img id="ownAvatar" src="" alt="" /></div>
+              <div class="flap-actions" id="ownActions">
+                <button class="squircle-btn glass-dark hidden" id="toggleEyeBtn" type="button" aria-label="Göster / Gizle">
+                  <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+                <button class="squircle-btn glass-dark hidden" id="replaceDropBtn" type="button" aria-label="Yeniden Yükle">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                    <path d="M3 3v5h5"/>
+                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                    <path d="M16 16h5v5"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <svg class="flap-border" viewBox="0 0 100 72" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M 7,14.4 L 46,14.4 C 51,14.4 54,11.6 57,7.2 C 60,2.8 63,0.6 68,0.6 L 93,0.6 C 96.8,0.6 99.4,3.2 99.4,7.2 L 99.4,64.8 C 99.4,68.8 96.8,71.4 93,71.4 L 7,71.4 C 3.2,71.4 0.6,68.8 0.6,64.8 L 0.6,21.6 C 0.6,17.6 3.2,14.4 7,14.4 Z" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="0.9" transform="translate(0, 28)"/>
+          </svg>
+        </article>
+        <div class="reveal-drawer" id="ownDrawer">
+          <div class="drawer-image-wrap" id="ownDrawerImgWrap"></div>
+          <p class="drawer-note" id="ownDrawerNote"></p>
+        </div>
+      </div>
+
+      <!-- PARTNER FOLIO (Large Hero Centerpiece) -->
+      <div class="partner-folio" id="partnerFolio">
+        <article class="folder-box folder-light" id="partnerFolderBtn">
+          <div class="folder-back"></div>
+          <div class="folder-peek-img" id="partnerPeek"></div>
+          <div class="folder-flap">
+            <div class="flap-row">
+              <div class="flap-avatar"><img id="partnerAvatar" src="" alt="" /></div>
+              <div class="flap-actions">
+                <button class="squircle-btn partner-arrow hidden" id="partnerArrowBtn" type="button" aria-label="Aç">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <svg class="flap-border" viewBox="0 0 100 76" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M 7,0.6 L 34,0.6 C 39,0.6 42,3.2 45,7.8 C 48,12.2 51,15.2 56,15.2 L 93,15.2 C 96.8,15.2 99.4,18.4 99.4,23 L 99.4,68.4 C 99.4,73 96.8,75.4 93,75.4 L 7,75.4 C 3.2,75.4 0.6,73 0.6,68.4 L 0.6,7.6 C 0.6,3.2 3.2,0.6 7,0.6 Z" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="1" transform="translate(0, 24)"/>
+          </svg>
+        </article>
+        <div class="reveal-drawer" id="partnerDrawer">
+          <div class="drawer-image-wrap" id="partnerDrawerImgWrap"></div>
+          <p class="drawer-note" id="partnerDrawerNote"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="uploadModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head"><button class="icon-close" id="closeUploadBtn" type="button">✕</button></div>
+      <label class="dropzone" id="dropzone" for="fileInput">
+        <input id="fileInput" type="file" accept="image/*" class="hidden" />
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Görsel seç veya bırak</span>
+      </label>
+      <input class="note-input" id="noteInput" type="text" maxlength="120" placeholder="Tek cümle yaz..." />
+      <button class="primary-btn" id="submitDropBtn" type="button">Paylaş</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="weekModal" aria-hidden="true">
+    <div class="week-modal-card">
+      <div class="week-modal-top">
+        <button class="download-btn" id="downloadGridBtn" type="button">Tek Görsel İndir</button>
+        <button class="icon-close" id="closeWeekBtn" type="button">✕</button>
+      </div>
+      <div class="seven-grid" id="sevenGrid"></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop lightbox-backdrop" id="lightboxModal" aria-hidden="true">
+    <img class="lightbox-pure-img" id="lbImg" src="" alt="" />
+  </div>
+
+  <script>
+    const USERS = {
+      onur:   { partner: 'cenker', avatar: 'assets/kyoka-mirror.jpg' },
+      cenker: { partner: 'onur',   avatar: 'assets/kvasir-mirror.jpg' }
+    };
+
+    const IS_HTTP = location.protocol === 'http:' || location.protocol === 'https:';
+    const STORAGE_KEY = 'warinstinct_drops_v4';
+    const SESSION_KEY = 'warinstinct_session_v4';
+
+    let currentUser = null;
+    let partnerOpen = false;
+    let ownRevealed = false;
+    let pendingWebp = null;
+    let state = { today: null, ownDrop: null, partnerDrop: null, seventhDay: null };
+
+    function toDateKey(d = new Date()) {
+      return new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Istanbul', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).format(d);
+    }
+
+    function formatDisplayDate(key) {
+      const [y, m, d] = key.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
+    }
+
+    // API layer (Vercel Blob in production, localStorage fallback when opened via file://)
+    async function fetchTodayState(user) {
+      if (IS_HTTP) {
+        const res = await fetch(`/api/today?user=${encodeURIComponent(user)}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('API error');
+        return res.json();
+      }
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      const today = toDateKey();
+      const partner = USERS[user].partner;
+      return {
+        today,
+        ownDrop: raw[user]?.[today] || null,
+        partnerDrop: raw[partner]?.[today] || null,
+        seventhDay: null
+      };
+    }
+
+    async function postDrop(user, imageBase64, note) {
+      if (IS_HTTP) {
+        const res = await fetch('/api/drop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user, imageBase64, note })
+        });
+        if (!res.ok) throw new Error('Upload failed');
+        return res.json();
+      }
+      const raw = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      const today = toDateKey();
+      if (!raw[user]) raw[user] = {};
+      raw[user][today] = { img: imageBase64, note, createdAt: Date.now() };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+      return { ok: true, today, drop: raw[user][today] };
+    }
+
+    function fileToWebP(file, quality = 0.84, maxSide = 1400) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.naturalWidth, h = img.naturalHeight;
+            if (Math.max(w, h) > maxSide) {
+              const r = maxSide / Math.max(w, h);
+              w = Math.round(w * r);
+              h = Math.round(h * r);
+            }
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            c.getContext('2d').drawImage(img, 0, 0, w, h);
+            const dataUrl = c.toDataURL('image/webp', quality);
+            resolve({ dataUrl, bytes: Math.round((dataUrl.length * 3) / 4) });
+          };
+          img.onerror = reject;
+          img.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    const loginScreen = document.getElementById('loginScreen');
+    const appShell = document.getElementById('appShell');
+    const seventhDayBtn = document.getElementById('seventhDayBtn');
+    const weekModal = document.getElementById('weekModal');
+    const sevenGrid = document.getElementById('sevenGrid');
+    const partnerFolio = document.getElementById('partnerFolio');
+    const ownFolio = document.getElementById('ownFolio');
+
+    document.getElementById('backToLoginBtn').addEventListener('click', () => {
+      localStorage.removeItem(SESSION_KEY);
+      currentUser = null;
+      partnerOpen = false;
+      ownRevealed = false;
+      appShell.classList.add('hidden');
+      loginScreen.classList.remove('hidden');
+    });
+
+    document.querySelectorAll('.portrait-gate').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const u = btn.dataset.user;
+        localStorage.setItem(SESSION_KEY, u);
+        enterApp(u);
+      });
+    });
+
+    async function enterApp(username) {
+      currentUser = username;
+      partnerOpen = false;
+      ownRevealed = false;
+      loginScreen.classList.add('hidden');
+      appShell.classList.remove('hidden');
+      await refreshState();
+    }
+
+    async function refreshState() {
+      try {
+        state = await fetchTodayState(currentUser);
+      } catch (e) {
+        console.error(e);
+      }
+      seventhDayBtn.classList.toggle('hidden', !state.seventhDay);
+      renderDaily();
+    }
+
+    function renderDaily() {
+      const partnerId = USERS[currentUser].partner;
+      const partnerDrop = state.partnerDrop;
+      const ownDrop = state.ownDrop;
+
+      document.getElementById('partnerAvatar').src = USERS[partnerId].avatar;
+      document.getElementById('ownAvatar').src = USERS[currentUser].avatar;
+
+      const partnerPeek = document.getElementById('partnerPeek');
+      const partnerImgWrap = document.getElementById('partnerDrawerImgWrap');
+      const partnerNote = document.getElementById('partnerDrawerNote');
+      const partnerArrowBtn = document.getElementById('partnerArrowBtn');
+
+      const dailyView = document.getElementById('dailyView');
+      if (partnerDrop) {
+        partnerArrowBtn.classList.remove('hidden');
+        partnerPeek.innerHTML = `<img src="${partnerDrop.img}" alt="" />`;
+        partnerImgWrap.innerHTML = `<img src="${partnerDrop.img}" alt="" />`;
+        partnerImgWrap.onclick = () => openLightbox(partnerDrop.img, partnerDrop.note);
+        partnerNote.textContent = partnerDrop.note;
+        partnerFolio.classList.toggle('is-open', partnerOpen);
+        dailyView.classList.toggle('partner-focused', partnerOpen);
+      } else {
+        partnerArrowBtn.classList.add('hidden');
+        partnerPeek.innerHTML = `<div class="empty-surface"></div>`;
+        partnerImgWrap.innerHTML = `<div class="empty-surface"></div>`;
+        partnerImgWrap.onclick = null;
+        partnerNote.textContent = '';
+        partnerOpen = false;
+        partnerFolio.classList.remove('is-open');
+        dailyView.classList.remove('partner-focused');
+      }
+
+      const ownPeek = document.getElementById('ownPeek');
+      const ownImgWrap = document.getElementById('ownDrawerImgWrap');
+      const ownNote = document.getElementById('ownDrawerNote');
+      const eyeBtn = document.getElementById('toggleEyeBtn');
+      const replaceBtn = document.getElementById('replaceDropBtn');
+
+      eyeBtn.classList.toggle('eye-active', ownRevealed);
+      document.getElementById('eyeIcon').innerHTML = ownRevealed
+        ? '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-6.5 0-10-7-10-7a18.5 18.5 0 0 1 5.06-5.94"/><path d="M9.9 4.24A10.94 10.94 0 0 1 12 5c6.5 0 10 7 10 7a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+        : '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+
+      if (ownDrop) {
+        ownFolio.classList.remove('is-empty');
+        eyeBtn.classList.remove('hidden');
+        replaceBtn.classList.remove('hidden');
+        ownPeek.classList.toggle('is-hidden', !ownRevealed);
+        ownPeek.innerHTML = `<img src="${ownDrop.img}" alt="" />`;
+        ownImgWrap.innerHTML = `<img src="${ownDrop.img}" alt="" />`;
+        ownImgWrap.onclick = () => openLightbox(ownDrop.img, ownDrop.note);
+        ownNote.textContent = ownDrop.note;
+        ownFolio.classList.toggle('is-revealed', ownRevealed);
+      } else {
+        ownFolio.classList.add('is-empty');
+        eyeBtn.classList.add('hidden');
+        replaceBtn.classList.add('hidden');
+        ownPeek.classList.remove('is-hidden');
+        ownPeek.innerHTML = `
+          <div class="empty-surface">
+            <span class="tap-upload-hint">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+          </div>
+        `;
+        ownImgWrap.innerHTML = '';
+        ownNote.textContent = '';
+        ownRevealed = false;
+        ownFolio.classList.remove('is-revealed');
+      }
+    }
+
+    function spawnEmptyBubble(container, text) {
+      const bubble = document.createElement('div');
+      bubble.className = 'chat-bubble-float';
+      bubble.textContent = text;
+      container.appendChild(bubble);
+      bubble.addEventListener('animationend', () => bubble.remove());
+    }
+
+    document.getElementById('partnerFolderBtn').addEventListener('click', () => {
+      if (!state.partnerDrop) {
+        spawnEmptyBubble(partnerFolio, 'yüklemedim kanka');
+        return;
+      }
+      partnerOpen = !partnerOpen;
+      if (partnerOpen) ownRevealed = false;
+      renderDaily();
+    });
+
+    document.getElementById('ownFolderBtn').addEventListener('click', () => {
+      if (!state.ownDrop) {
+        openUploadModal();
+        return;
+      }
+      ownRevealed = !ownRevealed;
+      if (ownRevealed) partnerOpen = false;
+      renderDaily();
+    });
+
+    document.getElementById('replaceDropBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      openUploadModal();
+    });
+
+    document.getElementById('toggleEyeBtn').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!state.ownDrop) return;
+      ownRevealed = !ownRevealed;
+      if (ownRevealed) partnerOpen = false;
+      renderDaily();
+    });
+
+    // ================= UPLOAD + WEBP =================
+    const uploadModal = document.getElementById('uploadModal');
+    const dropzone = document.getElementById('dropzone');
+    const noteInput = document.getElementById('noteInput');
+    const submitDropBtn = document.getElementById('submitDropBtn');
+
+    function resetDropzone() {
+      dropzone.classList.remove('has-preview');
+      dropzone.innerHTML = `
+        <input id="fileInput" type="file" accept="image/*" class="hidden" />
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Görsel seç veya bırak</span>
+      `;
+      dropzone.querySelector('#fileInput').addEventListener('change', (e) => {
+        if (e.target.files[0]) handleFile(e.target.files[0]);
+      });
+    }
+
+    function openUploadModal() {
+      pendingWebp = null;
+      noteInput.value = '';
+      submitDropBtn.disabled = false;
+      submitDropBtn.textContent = 'Paylaş';
+      resetDropzone();
+      uploadModal.classList.add('open');
+      uploadModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeUploadModal() {
+      uploadModal.classList.remove('open');
+      uploadModal.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('closeUploadBtn').addEventListener('click', closeUploadModal);
+    uploadModal.addEventListener('click', (e) => { if (e.target === uploadModal) closeUploadModal(); });
+    dropzone.addEventListener('dragover', (e) => e.preventDefault());
+    dropzone.addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+
+    async function handleFile(file) {
+      if (!file.type.startsWith('image/')) return;
+      const res = await fileToWebP(file);
+      pendingWebp = res.dataUrl;
+      const kb = Math.max(1, Math.round(res.bytes / 1024));
+      dropzone.classList.add('has-preview');
+      dropzone.innerHTML = `
+        <input id="fileInput" type="file" accept="image/*" class="hidden" />
+        <img src="${pendingWebp}" alt="" />
+        <span class="webp-badge">WEBP · ${kb} KB</span>
+      `;
+      dropzone.querySelector('#fileInput').addEventListener('change', (e) => {
+        if (e.target.files[0]) handleFile(e.target.files[0]);
+      });
+    }
+
+    submitDropBtn.addEventListener('click', async () => {
+      if (!pendingWebp) return;
+      const note = noteInput.value.trim();
+      if (!note) { noteInput.focus(); return; }
+      submitDropBtn.disabled = true;
+      submitDropBtn.textContent = '...';
+      try {
+        await postDrop(currentUser, pendingWebp, note);
+        ownRevealed = false;
+        closeUploadModal();
+        await refreshState();
+      } catch (err) {
+        console.error(err);
+        submitDropBtn.disabled = false;
+        submitDropBtn.textContent = 'Paylaş';
+      }
+    });
+
+    // ================= 7TH-DAY GRID =================
+    seventhDayBtn.addEventListener('click', () => {
+      const period = state.seventhDay;
+      if (!period) return;
+      sevenGrid.innerHTML = '';
+      period.days.forEach((slot, i) => {
+        const cell = document.createElement('div');
+        if (slot.drop) {
+          cell.className = `day-cell ${i === 0 ? 'first-span' : ''}`;
+          cell.innerHTML = `<img src="${slot.drop.img}" alt="" /><div class="day-cell-overlay">${slot.drop.note}</div>`;
+          cell.addEventListener('click', () => openLightbox(slot.drop.img, slot.drop.note));
+        } else {
+          cell.className = `day-cell empty-slot ${i === 0 ? 'first-span' : ''}`;
+          cell.textContent = formatDisplayDate(slot.dateKey);
+        }
+        sevenGrid.appendChild(cell);
+      });
+      weekModal.classList.add('open');
+      weekModal.setAttribute('aria-hidden', 'false');
+    });
+
+    document.getElementById('closeWeekBtn').addEventListener('click', () => {
+      weekModal.classList.remove('open');
+      weekModal.setAttribute('aria-hidden', 'true');
+    });
+    weekModal.addEventListener('click', (e) => { if (e.target === weekModal) weekModal.classList.remove('open'); });
+
+    document.getElementById('downloadGridBtn').addEventListener('click', async () => {
+      const period = state.seventhDay;
+      if (!period) return;
+      const W = 1600, H = 980;
+      const canvas = document.createElement('canvas');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#07080b';
+      ctx.fillRect(0, 0, W, H);
+      const pad = 40, gap = 16;
+      const colW = (W - pad * 2 - gap * 3) / 4;
+      const rowH = (H - pad * 2 - gap) / 2;
+      const boxes = [
+        { x: pad, y: pad, w: colW * 2 + gap, h: rowH },
+        { x: pad + (colW + gap) * 2, y: pad, w: colW, h: rowH },
+        { x: pad + (colW + gap) * 3, y: pad, w: colW, h: rowH },
+        { x: pad, y: pad + rowH + gap, w: colW, h: rowH },
+        { x: pad + (colW + gap), y: pad + rowH + gap, w: colW, h: rowH },
+        { x: pad + (colW + gap) * 2, y: pad + rowH + gap, w: colW, h: rowH },
+        { x: pad + (colW + gap) * 3, y: pad + rowH + gap, w: colW, h: rowH }
+      ];
+      const loadImg = (src) => new Promise((res, rej) => {
+        const im = new Image(); im.crossOrigin = 'anonymous';
+        im.onload = () => res(im); im.onerror = rej; im.src = src;
+      });
+      for (let i = 0; i < 7; i++) {
+        const b = boxes[i], slot = period.days[i];
+        ctx.save();
+        ctx.beginPath(); ctx.roundRect(b.x, b.y, b.w, b.h, 20); ctx.clip();
+        if (slot.drop) {
+          try {
+            const im = await loadImg(slot.drop.img);
+            const s = Math.max(b.w / im.naturalWidth, b.h / im.naturalHeight);
+            ctx.drawImage(im, b.x + (b.w - im.naturalWidth * s) / 2, b.y + (b.h - im.naturalHeight * s) / 2, im.naturalWidth * s, im.naturalHeight * s);
+          } catch (_) { ctx.fillStyle = '#141519'; ctx.fillRect(b.x, b.y, b.w, b.h); }
+          const grad = ctx.createLinearGradient(0, b.y + b.h * 0.55, 0, b.y + b.h);
+          grad.addColorStop(0, 'rgba(6,7,10,0)'); grad.addColorStop(1, 'rgba(6,7,10,0.88)');
+          ctx.fillStyle = grad; ctx.fillRect(b.x, b.y, b.w, b.h);
+          ctx.fillStyle = '#ffffff'; ctx.font = '500 16px Inter, sans-serif';
+          const txt = slot.drop.note.length > 44 ? slot.drop.note.slice(0, 43) + '…' : slot.drop.note;
+          ctx.fillText(txt, b.x + 18, b.y + b.h - 20);
+        } else {
+          ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(b.x, b.y, b.w, b.h);
+        }
+        ctx.restore();
+      }
+      const a = document.createElement('a');
+      a.download = `grid-${period.index}.webp`;
+      a.href = canvas.toDataURL('image/webp', 0.9);
+      a.click();
+    });
+
+    // ================= LIGHTBOX (Pure image over blurred background) =================
+    const lightboxModal = document.getElementById('lightboxModal');
+    function openLightbox(src) {
+      document.getElementById('lbImg').src = src;
+      lightboxModal.classList.add('open');
+      lightboxModal.setAttribute('aria-hidden', 'false');
+    }
+    function closeLightbox() {
+      lightboxModal.classList.remove('open');
+      lightboxModal.setAttribute('aria-hidden', 'true');
+    }
+    lightboxModal.addEventListener('click', closeLightbox);
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { closeLightbox(); closeUploadModal(); weekModal.classList.remove('open'); }
+    });
+
+    // Auto-expire at midnight (Europe/Istanbul): yesterday's drop vanishes immediately
+    let activeDayKey = toDateKey();
+    setInterval(() => {
+      const nowKey = toDateKey();
+      if (nowKey !== activeDayKey) {
+        activeDayKey = nowKey;
+        partnerOpen = false;
+        ownRevealed = false;
+        if (currentUser) refreshState();
+      }
+    }, 30000);
+
+    // 1.75s GPU-Smooth Blur-In / Blur-Out Intro
+    let introDone = false;
+    (function runIntro() {
+      const overlay = document.getElementById('introOverlay');
+      if (!overlay) { introDone = true; return; }
+      setTimeout(() => {
+        introDone = true;
+        overlay.classList.add('fade-out');
+        setTimeout(() => overlay.remove(), 440);
+      }, 1420);
+    })();
+
+    // Entropic non-periodic organic moth motion (starts cleanly after intro finishes)
+    (function animateMoths() {
+      const mothA = document.getElementById('mothA');
+      const mothB = document.getElementById('mothB');
+      const turbA = document.getElementById('turbA');
+      const turbB = document.getElementById('turbB');
+      const dispA = document.getElementById('dispA');
+      const dispB = document.getElementById('dispB');
+      if (!mothA || !mothB) return;
+
+      const phaseA = Math.random() * 100;
+      const phaseB = Math.random() * 100 + 37;
+      let lastFilterUpdate = 0;
+
+      function noise1D(t) {
+        return (
+          Math.sin(t * 0.41) * 0.50 +
+          Math.sin(t * 0.93 + 1.3) * 0.28 +
+          Math.sin(t * 1.71 + 2.7) * 0.14 +
+          Math.sin(t * 3.17 + 0.5) * 0.08
+        );
+      }
+
+      function tick(now) {
+        if (!introDone) {
+          requestAnimationFrame(tick);
+          return;
+        }
+        const s = now * 0.001;
+        const tA = s + phaseA;
+        const tB = s + phaseB;
+
+        // Subtle organic micro-drift & gentle wing breath (no stiff rotation)
+        const ax = noise1D(tA * 0.45) * 6;
+        const ay = noise1D(tA * 0.52 + 4.1) * 7;
+        const asx = 1 + noise1D(tA * 0.88 + 9.2) * 0.022;
+        const asy = 1 + noise1D(tA * 0.74 + 2.4) * 0.016;
+        const ar = noise1D(tA * 0.36 + 6.8) * 0.7;
+
+        const bx = noise1D(tB * 0.42) * 6;
+        const by = noise1D(tB * 0.49 + 3.3) * 7;
+        const bsx = 1 + noise1D(tB * 0.81 + 7.5) * 0.024;
+        const bsy = 1 + noise1D(tB * 0.69 + 1.8) * 0.016;
+        const br = noise1D(tB * 0.33 + 5.1) * 0.7;
+
+        mothA.style.transform = `translate3d(${ax.toFixed(2)}px, ${ay.toFixed(2)}px, 0) scale(${asx.toFixed(4)}, ${asy.toFixed(4)}) rotate(${ar.toFixed(3)}deg)`;
+        mothB.style.transform = `translate3d(${bx.toFixed(2)}px, ${by.toFixed(2)}px, 0) scale(${bsx.toFixed(4)}, ${bsy.toFixed(4)}) rotate(${br.toFixed(3)}deg)`;
+
+        // Gently shift organic wing-ripple turbulence (~24fps for silky GPU performance)
+        if (now - lastFilterUpdate > 42) {
+          lastFilterUpdate = now;
+          const fxA = 0.0068 + noise1D(tA * 0.35) * 0.0016;
+          const fyA = 0.0108 + noise1D(tA * 0.43 + 2) * 0.0022;
+          const scA = 10 + (noise1D(tA * 0.77 + 5) + 1) * 5.5;
+          turbA.setAttribute('baseFrequency', `${fxA.toFixed(5)} ${fyA.toFixed(5)}`);
+          dispA.setAttribute('scale', scA.toFixed(2));
+
+          const fxB = 0.0074 + noise1D(tB * 0.31) * 0.0016;
+          const fyB = 0.0114 + noise1D(tB * 0.39 + 3) * 0.0022;
+          const scB = 10 + (noise1D(tB * 0.71 + 4) + 1) * 5.5;
+          turbB.setAttribute('baseFrequency', `${fxB.toFixed(5)} ${fyB.toFixed(5)}`);
+          dispB.setAttribute('scale', scB.toFixed(2));
+        }
+
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
+
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved && USERS[saved]) enterApp(saved);
+  </script>
+</body>
+</html>
