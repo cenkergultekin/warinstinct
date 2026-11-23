@@ -1,33 +1,21 @@
-# warinstinct
+<p align="center">
+  <img src="public/assets/kyoka-mirror.jpg" alt="Kyoka" width="240" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="public/assets/kvasir-mirror.jpg" alt="Kvasir" width="240" />
+</p>
 
-Günlük karşılıklı görsel + tek cümle paylaşım alanı (`warinstinct.vercel.app`).
+<h2 align="center">KVASIR &nbsp;×&nbsp; KYOKA</h2>
 
-## Mimari Şema
+<p align="center"><em>iki arkadaş arasında günlük bir motivasyon mektubu.</em></p>
 
-```text
-Browser (public/index.html)
-  ├── İstemci tarafında görseli WebP'ye dönüştürür (Canvas)
-  ├── GET  /api/today?user=onur|cenker  ──► Vercel Serverless Function
-  └── POST /api/drop                    ──► Vercel Serverless Function
-                                                  │
-                                                  ▼
-                                         Vercel Blob Storage
-                                         ├── drops/<user>/<YYYY-MM-DD>.webp
-                                         └── meta/<user>.json
-```
+---
 
-### Kurallar
-- **Günlük Sıfırlama (`Europe/Istanbul`):** `/api/today` yalnızca bugünün (`YYYY-MM-DD`) paylaşımını döner; önceki günler ana ekranda görünmez.
-- **Karşılıklı Gizlilik:** Karşı tarafın klasörü tıklanınca yana doğru açılır; kendi klasörün varsayılan olarak gizlidir, göz ikonu ile açılır.
-- **7. Gün (24 Saatlik Grid):** İlk paylaşımdan itibaren tam 7., 14., 21. günlerde yalnızca o 24 saat boyunca 7 günlük grid butonu görünür ve tek `.webp` olarak indirilebilir; ertesi gün otomatik kaybolur.
+**warinstinct**, derin bir teknik temeli olmayan, bilerek basit tutulmuş bir alandır.
 
-## Kurulum & Canlıya Alma (Vercel)
+Amacı; gündelik hayatın içinden süzülen yorumları her gün üretilen bir yapay zekâ görseline ve tek bir cümleye dönüştürerek birbirimize motivasyon sağlamak, sanatsal bakışımızı diri tutmaktır.
 
-1. Vercel Dashboard → **warinstinct** projesi → **Storage → Create Database → Blob** seçip projeye bağla (`BLOB_READ_WRITE_TOKEN` otomatik eklenir).
-2. `main` branch'ine yapılan her push otomatik olarak `warinstinct.vercel.app` adresine deploy edilir.
+**Kyoka** ve **Kvasir**, iki arkadaşın oluşturduğu iki personadır. Dışarıdan bakıldığında birer alter ego gibi görünseler de, aslında aynı yolda yürürken birbirine yön hatırlatan iki yansıma, iki işarettir. Her gün bırakılan görsel ve cümle, karşı tarafa uzatılmış sessiz bir nottur.
 
-## Açık Repo & `main` Push Yetkisi
+Her paylaşım yalnızca bırakıldığı günün sonuna kadar orada kalır; ertesi gün yerini yeni bir boşluğa bırakır. Haftanın sonunda, yedi günün izleri kısa bir anlığına bir araya gelir ve sonra yeniden akışa karışır.
 
-- Repo herkese açık (`public`) tutulabilir; hiçbir gizli anahtar repoda yer almaz (`BLOB_READ_WRITE_TOKEN` sadece Vercel Environment Variables içindedir).
-- Onay verdiğin kişiye `main`'e push yetkisi vermek için:
-  - GitHub → **Settings → Collaborators → Add people** (veya `gh api -X PUT repos/cenkergultekin/warinstinct/collaborators/<github-kullanici-adi> -f permission=push`).
+Burası bitmiş bir ürün değil — gün geçtikçe birlikte geliştirerek hem sanatsal dilimizi hem de bu ortak alanın boyutsal kazanımını büyütmeyi amaçlayan yaşayan bir defterdir.
