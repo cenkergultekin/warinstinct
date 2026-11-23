@@ -6,16 +6,16 @@
 
 <h2 align="center">KVASIR &nbsp;×&nbsp; KYOKA</h2>
 
-<p align="center"><em>iki arkadaş arasında günlük bir motivasyon mektubu.</em></p>
+<p align="center"><em>iki arkadaş arası günlük motivasyon mektubu.</em></p>
 
 ---
 
-**warinstinct**, derin bir teknik temeli olmayan, bilerek basit tutulmuş bir alandır.
+warinstinct'in derin bir teknik temeli yok, basit çalışır.
 
-Amacı; gündelik hayatın içinden süzülen yorumları her gün üretilen bir yapay zekâ görseline ve tek bir cümleye dönüştürerek birbirimize motivasyon sağlamak, sanatsal bakışımızı diri tutmaktır.
+Amacımız gündelik yorumlardan esinlenerek her gün ürettiğimiz bir AI görseli ve tek bir cümleyle birbirimize motivasyon sağlamak. Sanatsal tarafımızı diri tutarken karşı tarafa o gün için küçük bir not bırakmak.
 
-**Kyoka** ve **Kvasir**, iki arkadaşın oluşturduğu iki personadır. Dışarıdan bakıldığında birer alter ego gibi görünseler de, aslında aynı yolda yürürken birbirine yön hatırlatan iki yansıma, iki işarettir. Her gün bırakılan görsel ve cümle, karşı tarafa uzatılmış sessiz bir nottur.
+Kyoka ve Kvasir, iki arkadaşın oluşturduğu personalar. Dışarıdan alter ego gibi dursalar da aslında ortak bir yolda birbirimize hatırlatıcı mesaj vermek için kullandığımız iki yüz.
 
-Her paylaşım yalnızca bırakıldığı günün sonuna kadar orada kalır; ertesi gün yerini yeni bir boşluğa bırakır. Haftanın sonunda, yedi günün izleri kısa bir anlığına bir araya gelir ve sonra yeniden akışa karışır.
+Konulan her görsel sadece o günün sonuna kadar kalır, ertesi gün görünmez. Yedinci günde o haftanın görselleri tek bir grid olarak kısa süreliğine açılır ve sonra yine kaybolur.
 
-Burası bitmiş bir ürün değil — gün geçtikçe birlikte geliştirerek hem sanatsal dilimizi hem de bu ortak alanın boyutsal kazanımını büyütmeyi amaçlayan yaşayan bir defterdir.
+Gün geçtikçe birlikte geliştirerek hem görsel dilimizi hem de bu alanın boyutsal kazanımını büyütmeyi amaçlıyoruz.
